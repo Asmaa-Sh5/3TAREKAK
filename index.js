@@ -30,11 +30,11 @@ app.use((req, res, next) => {
 });
 
 // routes
-app.use("/api/auth", authRoutes);
-app.use("/api/user", userRoutes);
-app.use("/api/posts", postsRoutes);
-app.use("/api/friendshipRequest", FriendshipRoutes);
-app.use("/api/admin", AdminRoutes);
+app.use("/auth", authRoutes);
+app.use("/user", userRoutes);
+app.use("/posts", postsRoutes);
+app.use("/friendshipRequest", FriendshipRoutes);
+app.use("/admin", AdminRoutes);
 
 // listening port
 const PORT = process.env.PORT || 3000;
