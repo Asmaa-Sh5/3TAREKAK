@@ -1,4 +1,4 @@
-const User = require("../models/User");
+const User = require("../models/user");
 let auth = (req, res, next) => {
   // Extract the token from the request headers
   let token = req.headers.authorization;

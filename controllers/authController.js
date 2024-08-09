@@ -1,6 +1,6 @@
 const { sendOTP } = require("../utils/otp");
 const { sendpassresetOTP } = require("../utils/otp");
-const User = require("../models/User");
+const User = require("../models/user");
 const { auth } = require("../middlewares/auth");
 
 const authController = {
