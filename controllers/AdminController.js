@@ -1,6 +1,6 @@
 const User = require("../models/user");
 const Admin = require("../models/admin");
-const bcrypt = require("bcrypt");
+const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 // Admin login
@@ -11,7 +11,7 @@ exports.adminLogin = async (req, res) => {
 
     if (!admin) return res.status(404).send("Admin not found.");
 
-    const isMatch = await bcrypt.compare(password, admin.password);
+    const isMatch = await bcryptjs.compare(password, admin.password);
     if (!isMatch) {
       console.log(error);
       return res.status(400).send("Invalid credentials.");
