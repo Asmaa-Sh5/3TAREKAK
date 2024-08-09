@@ -1,0 +1,76 @@
+const express = require("express");
+const FreiendshipRequestController = require("../controllers/FreiendshipRequestController");
+const { auth } = require("../middlewares/auth");
+const router = express.Router();
+
+router.post(
+  "/send-request",
+  auth,
+  FreiendshipRequestController.sendFriendshipRequest
+);
+router.post(
+  "/send-request-Sender",
+  auth,
+  FreiendshipRequestController.sendFriendshipRequest_sender
+);
+router.get(
+  "/received-requests",
+  auth,
+  FreiendshipRequestController.getReceivedRequests
+);
+router.get(
+  "/received-requests-sender",
+  auth,
+  FreiendshipRequestController.getReceivedRequests_sender
+);
+router.get(
+  "/sent-requests",
+  auth,
+  FreiendshipRequestController.getSentRequests
+);
+router.get(
+  "/sent-requests-sender",
+  auth,
+  FreiendshipRequestController.getSentRequests_sender
+);
+router.put(
+  "/accept-request/:id",
+  auth,
+  FreiendshipRequestController.acceptRequest
+);
+router.put(
+  "/accept-request-sender/:id",
+  auth,
+  FreiendshipRequestController.acceptRequest_sender
+);
+router.delete(
+  "/delete-request/:id",
+  auth,
+  FreiendshipRequestController.deleteRequest
+);
+router.delete(
+  "/delete-request-sender/:id",
+  auth,
+  FreiendshipRequestController.deleteRequest_sender
+);
+router.delete(
+  "/delete-all-requests",
+  auth,
+  FreiendshipRequestController.deleteAllRequests
+);
+router.delete(
+  "/delete-all-requests-sender",
+  auth,
+  FreiendshipRequestController.deleteAllRequests_sender
+);
+router.put(
+  "/reject-request/:id",
+  auth,
+  FreiendshipRequestController.rejectRequest
+);
+router.put(
+  "/reject-request-sender/:id",
+  auth,
+  FreiendshipRequestController.rejectRequest_sender
+);
+module.exports = router;
