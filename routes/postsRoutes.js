@@ -29,4 +29,6 @@ router.delete(
   auth,
   postsController.deleteAllPost_sender
 );
+router.get("/postscount", auth, postsController.getPostsCount);
+router.get("/postscount-sender", auth, postsController.getPostsCount_sender);
 module.exports = router;

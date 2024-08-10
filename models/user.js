@@ -1,7 +1,7 @@
 var mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const bcryptjs = require("bcryptjs");
-const confiq = require("../config/config").get(process.env.NODE_ENV);
+const config = require("../config/config").get(process.env.NODE_ENV);
 const salt = 10;
 
 const userSchema = mongoose.Schema({
@@ -75,8 +75,7 @@ userSchema.methods.comparepassword = function (password, cb) {
 
 userSchema.methods.generateToken = function (cb) {
   var user = this;
-  var token = jwt.sign(user._id.toHexString(), confiq.SECRET);
-
+  var token = jwt.sign(user._id.toHexString(), config.SECRET);
   user.token = token;
   return user
     .save()
@@ -97,7 +96,7 @@ userSchema.statics.findByToken = function (token, cb) {
     return cb("Token not provided");
   }
 
-  jwt.verify(token, confiq.SECRET, function (err, decode) {
+  jwt.verify(token, config.SECRET, function (err, decode) {
     if (err) {
       if (err.name === "TokenExpiredError") {
         return cb("Token expired");

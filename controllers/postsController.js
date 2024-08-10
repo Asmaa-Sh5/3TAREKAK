@@ -265,6 +265,22 @@ const postsController = {
       res.status(500).json({ message: error.message });
     }
   },
+  getPostsCount: async (req, res) => {
+    try {
+      const count = await Post.countDocuments();
+      res.status(200).json({ count });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+  getPostsCount_sender: async (req, res) => {
+    try {
+      const count = await Post_sender.countDocuments();
+      res.status(200).json({ count });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
 };
 
 module.exports = postsController;
