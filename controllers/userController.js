@@ -1,11 +1,21 @@
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
 const User = require("../models/user");
+
+// Function to ensure directory exists
+const ensureDirectoryExistence = (directory) => {
+  if (!fs.existsSync(directory)) {
+    fs.mkdirSync(directory, { recursive: true });
+  }
+};
 
 // Set up storage for profile image uploads
 const profileStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/profile_images"); // Folder for profile images
+    const uploadDir = "uploads/profile_images";
+    ensureDirectoryExistence(uploadDir); // Ensure the directory exists
+    cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + "-profile" + path.extname(file.originalname)); // Add timestamp
@@ -15,7 +25,9 @@ const profileStorage = multer.diskStorage({
 // Set up storage for ID and Passport photo uploads
 const authStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/auth_images"); // Folder for ID/passport images
+    const uploadDir = "uploads/auth_images";
+    ensureDirectoryExistence(uploadDir); // Ensure the directory exists
+    cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
     cb(
@@ -79,32 +91,48 @@ const uploadProfileImageController = (req, res) => {
   });
 };
 
-// Controller for ID and passport photo upload
+// Controller for ID or passport photo upload (only one allowed)
 const requestAuthenticationController = (req, res) => {
   uploadAuthImages(req, res, async (err) => {
     if (err) {
       return res.status(400).send({ message: err.message });
     }
 
-    // if (!req.files || !req.files.idphotoURL || !req.files.passportphotoURL) {
-    //   return res
-    //     .status(400)
-    //     .send({ message: "Both ID and passport photos must be uploaded." });
-    // }
+    // Ensure that only one of the fields is uploaded
+    if (req.files.idphotoURL && req.files.passportphotoURL) {
+      return res.status(400).send({
+        message:
+          "Please upload only one image: either an ID photo or a passport photo.",
+      });
+    }
+
+    if (!req.files.idphotoURL && !req.files.passportphotoURL) {
+      return res.status(400).send({
+        message: "Please upload either an ID photo or a passport photo.",
+      });
+    }
 
     try {
       const user = await User.findById(req.user._id);
       user.authenticationRequest.requested = true;
-      user.authenticationRequest.idphotoURL = req.files.idphotoURL[0].path;
-      user.authenticationRequest.passportphotoURL =
-        req.files.passportphotoURL[0].path;
+
+      // Save the ID photo if it was uploaded
+      if (req.files.idphotoURL) {
+        user.authenticationRequest.idphotoURL = req.files.idphotoURL[0].path;
+      }
+
+      // Save the passport photo if it was uploaded
+      if (req.files.passportphotoURL) {
+        user.authenticationRequest.passportphotoURL =
+          req.files.passportphotoURL[0].path;
+      }
 
       await user.save();
 
       res.status(200).send({
         message: "Authentication request submitted successfully!",
-        idPhotoURL: user.authenticationRequest.idphotoURL,
-        passportPhotoURL: user.authenticationRequest.passportphotoURL,
+        idPhotoURL: user.authenticationRequest.idphotoURL || null,
+        passportPhotoURL: user.authenticationRequest.passportphotoURL || null,
       });
     } catch (error) {
       res
