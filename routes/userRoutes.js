@@ -4,5 +4,5 @@ const { auth } = require("../middlewares/auth");
 
 const router = express.Router();
 router.get("/profile", auth, userController.getProfile);
-router.post("/request-authentication", userController.requestAuthentication);
+router.post("/upload-profile-image", auth, userController.uploadProfileImage);
 module.exports = router;

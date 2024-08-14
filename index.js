@@ -6,8 +6,13 @@ const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const postsRoutes = require("./routes/postsRoutes");
 const FriendshipRoutes = require("./routes/FriendshipRequestRoutes");
-const AdminRoutes = require("./routes/AdminRoutes");
+const AdminRoutes = require( "./routes/AdminRoutes" );
+const path = require( "path" );
 const app = express();
+app.use(express.json());
+
+// Serve static uploads
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // app use
 app.use(bodyparser.urlencoded({ extended: false }));
 app.use(bodyparser.json());
@@ -17,7 +22,7 @@ mongoose.Promise = global.Promise;
 mongoose.connect(db.DATABASE).then(() => {
   console.log("database is connected");
 });
-
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.get("/", function (req, res) {
   res.status(200).send(`Welcome to api`);
 });

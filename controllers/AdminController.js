@@ -1,29 +1,42 @@
 const User = require("../models/user");
-const Admin = require("../models/admin");
+const Admin = require("../models/admin"); // Changed to Admin to avoid naming conflict
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const config = require("../config/config"); // Import the config module
+
+// Get the current environment configuration
+const envConfig = config.get(process.env.NODE_ENV || "default");
+const JWT_SECRET = envConfig.SECRET;
 
 // Admin login
 exports.adminLogin = async (req, res) => {
+  const { email, password } = req.body;
+
   try {
-    const { email, password } = req.body;
     const admin = await Admin.findOne({ email });
 
     if (!admin) return res.status(404).send("Admin not found.");
 
-    const isMatch = await bcryptjs.compare(password, admin.password);
-    if (!isMatch) {
-      console.log(error);
-      return res.status(400).send("Invalid credentials.");
-    }
+    // Use bcryptjs to compare passwords
+    bcryptjs.compare(password, admin.password, (err, isMatch) => {
+      if (err) return res.status(500).send("Server error");
 
-    const token = jwt.sign(
-      { id: admin._id, email: admin.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
+      if (!isMatch) {
+        return res.status(401).json({
+          isAuth: false,
+          message: "Authentication failed: Password doesn't match",
+        });
+      }
 
-    res.status(200).json({ token });
+      // Generate JWT token
+      const token = jwt.sign(
+        { id: admin._id, email: admin.email },
+        JWT_SECRET,
+        { expiresIn: "1h" }
+      );
+
+      res.status(200).json({ token });
+    });
   } catch (error) {
     res.status(500).send(error.message);
   }
@@ -49,10 +62,11 @@ exports.handleAuthenticationRequest = async (req, res) => {
 
     if (action === "approve") {
       user.isAuthenticated = true;
-    }
-    if (action === "deny") {
+    } else if (action === "deny") {
       user.isAuthenticated = false;
     }
+
+    // Clear authentication request data if needed
     // user.authenticationRequest.requested = false;
     // user.authenticationRequest.idphotoURL = "";
     // user.authenticationRequest.passportphotoURL = "";

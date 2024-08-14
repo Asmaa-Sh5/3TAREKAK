@@ -32,6 +32,10 @@ const userSchema = mongoose.Schema({
     idphotoURL: { type: String, default: "" },
     passportphotoURL: { type: String, default: "" },
   },
+  profileImageUrl: {
+    type: String,
+    default: "", // Default to empty if no profile image uploaded
+  },
 
   token: {
     type: String,

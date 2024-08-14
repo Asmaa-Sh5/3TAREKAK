@@ -5,7 +5,7 @@ const config = {
   },
   default: {
     SECRET: "mysecretkey",
-    DATABASE: "mongodb://0.0.0.0:27017/Users",
+    DATABASE: "mongodb://0.0.0.0:27017/3TAREKAK",
   },
 };
 

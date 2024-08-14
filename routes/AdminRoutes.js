@@ -12,9 +12,10 @@ router.post("/login", adminLogin);
 router.get("/users", getAllUsers);
 router.post(
   "/handle-authentication",
+  adminAuthMiddleware,
 
   handleAuthenticationRequest
 );
-router.delete("/user/:userId", deleteUserAccount);
+router.delete("/user/:userId", adminAuthMiddleware, deleteUserAccount);
 
 module.exports = router;

@@ -1,30 +1,131 @@
-const userController = {
-  // Request Authentication
-  requestAuthentication: async (req, res) => {
+const multer = require("multer");
+const path = require("path");
+const User = require("../models/user");
+
+// Set up storage for profile image uploads
+const profileStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/profile_images"); // Folder for profile images
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-profile" + path.extname(file.originalname)); // Add timestamp
+  },
+});
+
+// Set up storage for ID and Passport photo uploads
+const authStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/auth_images"); // Folder for ID/passport images
+  },
+  filename: function (req, file, cb) {
+    cb(
+      null,
+      Date.now() + "-" + file.fieldname + path.extname(file.originalname)
+    ); // Name by fieldname
+  },
+});
+
+// File filter for images only
+const imageFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("image/")) {
+    cb(null, true);
+  } else {
+    cb(new Error("Please upload an image file."), false);
+  }
+};
+
+// Multer setup for profile image
+const uploadProfileImage = multer({
+  storage: profileStorage,
+  fileFilter: imageFilter,
+  limits: { fileSize: 2 * 1024 * 1024 }, // Limit 2MB
+}).single("profileImage");
+
+// Multer setup for ID and passport photo uploads
+const uploadAuthImages = multer({
+  storage: authStorage,
+  fileFilter: imageFilter,
+  limits: { fileSize: 2 * 1024 * 1024 }, // Limit 2MB
+}).fields([
+  { name: "idphotoURL", maxCount: 1 },
+  { name: "passportphotoURL", maxCount: 1 },
+]);
+
+// Controller for profile image upload
+const uploadProfileImageController = (req, res) => {
+  uploadProfileImage(req, res, async (err) => {
+    if (err) {
+      return res.status(400).send({ message: err.message });
+    }
+
+    if (!req.file) {
+      return res.status(400).send({ message: "No profile image uploaded." });
+    }
+
     try {
-      const { idphotoURL, passportphotoURL } = req.body;
       const user = await User.findById(req.user._id);
-
-      if (!user) return res.status(404).send("User not found.");
-
-      user.authenticationRequest.requested = true;
-      user.authenticationRequest.idphotoURL = idphotoURL;
-      user.authenticationRequest.passportphotoURL = passportphotoURL;
+      user.profileImageUrl = req.file.path;
       await user.save();
 
-      res.status(200).send("Authentication request sent.");
+      res.status(200).send({
+        message: "Profile image uploaded successfully!",
+        imageUrl: req.file.path,
+      });
     } catch (error) {
-      res.status(500).send(error.message);
+      res
+        .status(500)
+        .send({ message: "Server error, please try again later." });
     }
-  },
+  });
+};
+
+// Controller for ID and passport photo upload
+const requestAuthenticationController = (req, res) => {
+  uploadAuthImages(req, res, async (err) => {
+    if (err) {
+      return res.status(400).send({ message: err.message });
+    }
+
+    // if (!req.files || !req.files.idphotoURL || !req.files.passportphotoURL) {
+    //   return res
+    //     .status(400)
+    //     .send({ message: "Both ID and passport photos must be uploaded." });
+    // }
+
+    try {
+      const user = await User.findById(req.user._id);
+      user.authenticationRequest.requested = true;
+      user.authenticationRequest.idphotoURL = req.files.idphotoURL[0].path;
+      user.authenticationRequest.passportphotoURL =
+        req.files.passportphotoURL[0].path;
+
+      await user.save();
+
+      res.status(200).send({
+        message: "Authentication request submitted successfully!",
+        idPhotoURL: user.authenticationRequest.idphotoURL,
+        passportPhotoURL: user.authenticationRequest.passportphotoURL,
+      });
+    } catch (error) {
+      res
+        .status(500)
+        .send({ message: "Server error, please try again later." });
+    }
+  });
+};
+
+const userController = {
   getProfile: (req, res) => {
     res.json({
       isAuth: true,
       id: req.user._id,
       email: req.user.email,
       name: req.user.name,
+      profileImageUrl: req.user.profileImageUrl,
     });
   },
+  uploadProfileImage: uploadProfileImageController,
+  requestAuthentication: requestAuthenticationController,
 };
 
 module.exports = userController;
