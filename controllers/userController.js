@@ -78,6 +78,9 @@ const requestAuthenticationController = (req, res) => {
       return res.status(400).send({ message: err.message });
     }
 
+    // Log req.files to check if the files are being uploaded properly
+    console.log("Uploaded files:", req.files);
+
     // Ensure that only one of the fields is uploaded
     if (req.files.idphotoURL && req.files.passportphotoURL) {
       return res.status(400).send({
@@ -98,11 +101,13 @@ const requestAuthenticationController = (req, res) => {
 
       // Save the ID photo if it was uploaded
       if (req.files.idphotoURL) {
+        console.log("Saving ID photo...");
         user.authenticationRequest.idphotoURL = req.files.idphotoURL[0].path; // Cloudinary URL
       }
 
       // Save the passport photo if it was uploaded
       if (req.files.passportphotoURL) {
+        console.log("Saving passport photo...");
         user.authenticationRequest.passportphotoURL =
           req.files.passportphotoURL[0].path; // Cloudinary URL
       }
@@ -111,11 +116,13 @@ const requestAuthenticationController = (req, res) => {
 
       // Respond based on which photo was uploaded
       if (user.authenticationRequest.idphotoURL) {
+        console.log("Returning ID photo URL...");
         res.status(200).send({
           message: "Authentication request submitted successfully!",
           idPhotoURL: user.authenticationRequest.idphotoURL,
         });
       } else if (user.authenticationRequest.passportphotoURL) {
+        console.log("Returning passport photo URL...");
         res.status(200).send({
           message: "Authentication request submitted successfully!",
           passportPhotoURL: user.authenticationRequest.passportphotoURL,
