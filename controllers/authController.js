@@ -214,5 +214,40 @@ const authController = {
       }
     }
   },
+  resendOTP: async (req, res) => {
+    const { email } = req.body; // Assuming email is passed in the request body
+
+    // Check if user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    try {
+      // Generate a new OTP
+      const newOtpCode = Math.floor(1000 + Math.random() * 9000);
+      console.log(newOtpCode);
+
+      // Update the user's OTP
+      user.otp = newOtpCode;
+      await user.save();
+
+      // Resend the OTP using the sendOTP utility function
+      await sendOTP(user.email, newOtpCode);
+
+      res.status(200).json({
+        success: true,
+        message: "OTP resent successfully. Please check your email.",
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to resend OTP",
+      });
+    }
+  },
 };
 module.exports = authController;

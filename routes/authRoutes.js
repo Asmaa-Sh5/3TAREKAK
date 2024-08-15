@@ -1,5 +1,5 @@
 const express = require("express");
-const authController = require( "../controllers/authController" );
+const authController = require("../controllers/authController");
 const userController = require("../controllers/userController");
 
 const { auth } = require("../middlewares/auth");
@@ -14,5 +14,9 @@ router.post(
   auth,
   userController.requestAuthentication
 );
+router.post("/forgetpass", authController.forgetpass);
+router.post("/resetpass", authController.resetpass);
+router.post("/verifyResetPassOtp", authController.verifyResetPassOtp);
+router.post("/resend-otp", authController.resendOTP);
 
 module.exports = router;
