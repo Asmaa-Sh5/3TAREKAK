@@ -115,7 +115,7 @@ const requestAuthenticationController = (req, res) => {
           message: "Authentication request submitted successfully!",
           idPhotoURL: user.authenticationRequest.idphotoURL,
         });
-      else
+      if (user.authenticationRequest.passportphotoURL)
         res.status(200).send({
           message: "Authentication request submitted successfully!",
           passportPhotoURL: user.authenticationRequest.passportphotoURL,
