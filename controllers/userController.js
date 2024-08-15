@@ -1,62 +1,42 @@
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
+const { v2: cloudinary } = require("cloudinary");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const User = require("../models/user");
 
-// Function to ensure directory exists
-const ensureDirectoryExistence = (directory) => {
-  if (!fs.existsSync(directory)) {
-    fs.mkdirSync(directory, { recursive: true });
-  }
-};
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, // Get from your Cloudinary dashboard
+  api_key: process.env.CLOUDINARY_API_KEY, // Get from your Cloudinary dashboard
+  api_secret: process.env.CLOUDINARY_API_SECRET, // Get from your Cloudinary dashboard
+});
 
-// Set up storage for profile image uploads
-const profileStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = "uploads/profile_images";
-    ensureDirectoryExistence(uploadDir); // Ensure the directory exists
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-profile" + path.extname(file.originalname)); // Add timestamp
+// Set up Cloudinary storage for profile image uploads
+const profileStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "profile_images", // Folder to store profile images in Cloudinary
+    allowed_formats: ["jpg", "jpeg", "png"],
   },
 });
 
-// Set up storage for ID and Passport photo uploads
-const authStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = "uploads/auth_images";
-    ensureDirectoryExistence(uploadDir); // Ensure the directory exists
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    cb(
-      null,
-      Date.now() + "-" + file.fieldname + path.extname(file.originalname)
-    ); // Name by fieldname
+// Set up Cloudinary storage for ID and passport photo uploads
+const authStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "auth_images", // Folder to store ID and passport photos
+    allowed_formats: ["jpg", "jpeg", "png"],
   },
 });
-
-// File filter for images only
-const imageFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith("image/")) {
-    cb(null, true);
-  } else {
-    cb(new Error("Please upload an image file."), false);
-  }
-};
 
 // Multer setup for profile image
 const uploadProfileImage = multer({
   storage: profileStorage,
-  fileFilter: imageFilter,
   limits: { fileSize: 2 * 1024 * 1024 }, // Limit 2MB
 }).single("profileImage");
 
 // Multer setup for ID and passport photo uploads
 const uploadAuthImages = multer({
   storage: authStorage,
-  fileFilter: imageFilter,
   limits: { fileSize: 2 * 1024 * 1024 }, // Limit 2MB
 }).fields([
   { name: "idphotoURL", maxCount: 1 },
@@ -76,12 +56,12 @@ const uploadProfileImageController = (req, res) => {
 
     try {
       const user = await User.findById(req.user._id);
-      user.profileImageUrl = req.file.path;
+      user.profileImageUrl = req.file.path; // Cloudinary returns a URL path
       await user.save();
 
       res.status(200).send({
         message: "Profile image uploaded successfully!",
-        imageUrl: req.file.path,
+        imageUrl: req.file.path, // The Cloudinary URL
       });
     } catch (error) {
       res
@@ -118,26 +98,23 @@ const requestAuthenticationController = (req, res) => {
 
       // Save the ID photo if it was uploaded
       if (req.files.idphotoURL) {
-        user.authenticationRequest.idphotoURL = req.files.idphotoURL[0].path;
+        user.authenticationRequest.idphotoURL = req.files.idphotoURL[0].path; // Cloudinary URL
       }
 
       // Save the passport photo if it was uploaded
       if (req.files.passportphotoURL) {
         user.authenticationRequest.passportphotoURL =
-          req.files.passportphotoURL[0].path;
+          req.files.passportphotoURL[0].path; // Cloudinary URL
       }
 
       await user.save();
-      if (req.files.idPhotoURL)
-        res.status(200).send({
-          message: "Authentication request submitted successfully!",
-          idPhotoURL: user.authenticationRequest.idphotoURL,
-        });
-      if (req.files.passportPhotoURL)
-        res.status(200).send({
-          message: "Authentication request submitted successfully!",
-          passportPhotoURL: user.authenticationRequest.passportphotoURL,
-        });
+
+      // Respond with the appropriate message
+      res.status(200).send({
+        message: "Authentication request submitted successfully!",
+        idPhotoURL: user.authenticationRequest.idphotoURL || null,
+        passportPhotoURL: user.authenticationRequest.passportphotoURL || null,
+      });
     } catch (error) {
       res
         .status(500)
