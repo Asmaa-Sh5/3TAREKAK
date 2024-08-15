@@ -149,6 +149,16 @@ const postsController = {
         kindOfThing: post.kindOfThing,
         availableWeight: post.weight,
         price: post.price,
+        description: post.description,
+        takeLocation: post.takeLocation,
+        giveLocation: post.giveLocation,
+        takeDate: post.takeDate,
+        takeTime: post.takeTime,
+        giveDate: post.giveDate,
+        travelDate: post.travelDate,
+        source: post.source,
+        target: post.target,
+        user: post.user,
       });
     } catch (error) {
       console.error(error);
