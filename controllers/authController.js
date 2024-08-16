@@ -45,7 +45,6 @@ const authController = {
         res.status(200).json({
           success: true,
           user: savedUser,
-          otp: otpCode,
           message: "User registered successfully. Please verify OTP.",
         });
       } catch (error) {
