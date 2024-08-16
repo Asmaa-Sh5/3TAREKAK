@@ -6,8 +6,8 @@ const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const postsRoutes = require("./routes/postsRoutes");
 const FriendshipRoutes = require("./routes/FriendshipRequestRoutes");
-const AdminRoutes = require( "./routes/AdminRoutes" );
-const path = require( "path" );
+const AdminRoutes = require("./routes/AdminRoutes");
+const path = require("path");
 const app = express();
 app.use(express.json());
 
@@ -26,9 +26,13 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.get("/", function (req, res) {
   res.status(200).send(`Welcome to api`);
 });
+
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*"); // Allowing requests from any origin
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET,DELETE, PUT, POST, OPTIONS"
+  );
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.setHeader("Access-Control-Allow-Credentials", true);
   next();
